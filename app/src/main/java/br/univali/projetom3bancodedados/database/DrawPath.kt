@@ -16,3 +16,11 @@ data class DrawPath(
     @ColumnInfo(name = "draw_name")
     val drawName: String
 )
+
+data class Path(
+    @ColumnInfo(name = "path_name")
+    val name: String,
+
+    @ColumnInfo(name = "argb_color")
+    val color: Int
+)
