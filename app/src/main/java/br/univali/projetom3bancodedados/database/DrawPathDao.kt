@@ -4,12 +4,11 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DrawPathDao {
-    @Query("SELECT path_name, argb_color FROM draw_path WHERE draw_name = :drawName")
-    fun getPathsByDraw(drawName: String): Flow<List<Path>>
+    @Query("SELECT * FROM draw_path WHERE draw_name = :drawName")
+    suspend fun getPathsByDraw(drawName: String): List<DrawPath>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPath(path: DrawPath)
