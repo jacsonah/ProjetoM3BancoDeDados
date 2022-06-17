@@ -12,7 +12,10 @@ import com.google.accompanist.pager.HorizontalPager
 @Composable
 fun Screen()
 {
-    val pages = listOf(Pages.BelgiumPaint)
+    val pages = listOf(
+        Pages.JigsawPuzzle,
+        Pages.BelgiumPaint
+    )
 
     HorizontalPager(
         count = pages.size,
