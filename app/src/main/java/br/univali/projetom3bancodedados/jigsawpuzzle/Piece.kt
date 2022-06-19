@@ -36,7 +36,9 @@ fun Piece(
 
     AndroidView(
         factory = { context ->
-            ImageView(context).apply {}
+            ImageView(context).apply {
+                scaleType = ImageView.ScaleType.FIT_XY
+            }
         },
         update = { imageView ->
             var dragStartedX: Float? = null

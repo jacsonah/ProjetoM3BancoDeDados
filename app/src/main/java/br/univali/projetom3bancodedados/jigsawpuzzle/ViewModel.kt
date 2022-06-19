@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import br.univali.projetom3bancodedados.jigsawpuzzle.database.Piece as DatabasePiece
 import br.univali.projetom3bancodedados.jigsawpuzzle.database.PieceDao
 import kotlinx.coroutines.launch
 
@@ -91,6 +92,7 @@ class ViewModel(
                     }
                 }
             }
+            listPieces.shuffle()
         }
     }
 
@@ -104,11 +106,50 @@ class ViewModel(
             bitmap = droppedPiece.bitmap
         )
 
+        viewModelScope.launch {
+            pieceDao.insertPiece(
+                DatabasePiece(
+                    rowIndex = droppedPiece.rowIndex,
+                    columnIndex = droppedPiece.columnIndex,
+                    currentRowIndex = dropRowIndex,
+                    currentColumnIndex = dropColumnIndex
+                )
+            )
+        }
+
         if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
             gridPieces[droppedPiece.currentRowIndex][droppedPiece.currentColumnIndex].value = null
         }
         else {
             listPieces.remove(droppedPiece)
+        }
+    }
+
+    fun clearGrid()
+    {
+        gridPieces.forEach {
+            it.forEach { pieceMutableState ->
+                val piece = pieceMutableState.value
+
+                if (piece != null) {
+                    listPieces.add(
+                        Piece(
+                            rowIndex = piece.rowIndex,
+                            columnIndex = piece.columnIndex,
+                            currentRowIndex = null,
+                            currentColumnIndex = null,
+                            bitmap = piece.bitmap
+                        )
+                    )
+                    pieceMutableState.value = null
+                }
+            }
+        }
+
+        listPieces.shuffle()
+
+        viewModelScope.launch {
+            pieceDao.deleteAllPieces()
         }
     }
 }
