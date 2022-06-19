@@ -1,9 +1,6 @@
 package br.univali.projetom3bancodedados.jigsawpuzzle
 
-import android.content.Context
-import android.graphics.Bitmap
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,65 +11,58 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-
-private const val ROWS = 4
-private const val COLUMNS = 3
+import androidx.lifecycle.viewmodel.compose.viewModel
+import br.univali.projetom3bancodedados.database.AppDatabase
 
 @Composable
-fun rememberPieces(drawableId: Int, context: Context) = remember()
+fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
 {
-    val pieces = mutableStateListOf<Bitmap>()
-    val imageBitmap = context.getDrawable(drawableId)?.toBitmap()
-
-    if (imageBitmap != null)
-    {
-        val pieceWidth = imageBitmap.width / COLUMNS
-        val pieceHeight = imageBitmap.height / ROWS
-
-        for (row in 0 until ROWS)
-        {
-            for (column in 0 until COLUMNS)
-            {
-                pieces.add(Bitmap.createBitmap(imageBitmap, (pieceWidth * column), (pieceHeight * row), pieceWidth, pieceHeight))
-            }
+    val viewModel: ViewModel = viewModel(
+        factory = LocalContext.current.getDrawable(drawableId)?.toBitmap()?.let {
+            ViewModelFactory(
+                pieceDao = AppDatabase.getDatabase(LocalContext.current).pieceDao(),
+                puzzleBitmap = it,
+                rows = rows,
+                columns = columns
+            )
         }
-    }
 
-    pieces
-}
-
-@Composable
-fun JigsawPuzzle(drawableId: Int)
-{
-    val pieces = rememberPieces(drawableId = drawableId, context = LocalContext.current)
+    )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
     )
     {
         Column(
             modifier = Modifier
                 .border(BorderStroke(2.dp, Color.Black))
-                .weight(ROWS.toFloat())
+                .weight(rows.toFloat())
         )
         {
-            repeat(ROWS)
-            {
+            repeat(rows) { rowIndex ->
                 BoxWithConstraints(
                     modifier = Modifier.weight(1f)
                 )
                 {
                     val pieceHeight = maxHeight
-                    val pieceWidth = (pieceHeight * pieces[0].width) / pieces[0].height
+                    val pieceWidth = (pieceHeight * viewModel.pieceBitmapWidth) / viewModel.pieceBitmapHeight
 
                     Row()
                     {
-                        repeat(COLUMNS)
-                        {
-                            GridPiece(
-                                imageBitmap = null,
+                        repeat(columns) { columnIndex ->
+                            val gridPiece = viewModel.gridPieces[rowIndex][columnIndex]
+
+                            Piece(
+                                piece = gridPiece.value,
+                                acceptDragEvents = gridPiece.value != null,
+                                acceptDropEvents = gridPiece.value == null,
+                                onDrop = {
+                                    viewModel.dropPieceOnGrid(it, rowIndex, columnIndex)
+                                },
                                 modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
                             )
                         }
@@ -86,14 +76,15 @@ fun JigsawPuzzle(drawableId: Int)
         )
         {
             val pieceHeight = maxHeight
-            val pieceWidth = (pieceHeight * pieces[0].width) / pieces[0].height
+            val pieceWidth = (pieceHeight * viewModel.pieceBitmapWidth) / viewModel.pieceBitmapHeight
 
             LazyRow()
             {
-                items(pieces)
+                items(viewModel.listPieces)
                 {
                     Piece(
-                        imageBitmap = it,
+                        piece = it,
+                        acceptDragEvents = true,
                         modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
                     )
                 }
