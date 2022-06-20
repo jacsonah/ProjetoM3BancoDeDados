@@ -50,20 +50,18 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             )
         }
 
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
-                .border(BorderStroke(2.dp, Color.Black))
+                .border(BorderStroke(5.dp, Color.Black))
                 .weight(rows.toFloat())
         )
         {
-            repeat(rows) { rowIndex ->
-                BoxWithConstraints(
-                    modifier = Modifier.weight(1f)
-                )
-                {
-                    val pieceHeight = maxHeight
-                    val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
+            val pieceHeight = maxHeight / rows
+            val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
+            Column()
+            {
+                repeat(rows) { rowIndex ->
                     Row()
                     {
                         repeat(columns) { columnIndex ->
@@ -88,8 +86,7 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             modifier = Modifier.weight(1f)
         )
         {
-            val pieceHeight = maxHeight
-            val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
+            val pieceWidth = (maxHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -100,7 +97,9 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
                     Piece(
                         piece = it,
                         acceptDragEvents = true,
-                        modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
+                        modifier = Modifier
+                            .width(pieceWidth)
+                            .fillMaxHeight()
                     )
                 }
             }

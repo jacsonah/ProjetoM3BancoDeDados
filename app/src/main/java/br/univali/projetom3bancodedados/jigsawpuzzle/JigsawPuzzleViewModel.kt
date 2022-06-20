@@ -59,7 +59,7 @@ class JigsawPuzzleViewModel(
             val pieceBorderPaint = Paint()
             pieceBorderPaint.color = Color.BLACK
             pieceBorderPaint.style = Paint.Style.STROKE
-            pieceBorderPaint.strokeWidth = (10 * Resources.getSystem().displayMetrics.density)
+            pieceBorderPaint.strokeWidth = (5 * Resources.getSystem().displayMetrics.density)
             val pieceBorderPath = Path()
 
             for (rowIndex in 0 until rows)
