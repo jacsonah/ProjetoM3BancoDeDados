@@ -1,5 +1,6 @@
 package br.univali.projetom3bancodedados.jigsawpuzzle
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.univali.projetom3bancodedados.R
 import br.univali.projetom3bancodedados.database.AppDatabase
@@ -20,16 +20,13 @@ import br.univali.projetom3bancodedados.database.AppDatabase
 @Composable
 fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
 {
-    val viewModel: ViewModel = viewModel(
-        factory = LocalContext.current.getDrawable(drawableId)?.toBitmap()?.let {
-            ViewModelFactory(
-                pieceDao = AppDatabase.getDatabase(LocalContext.current).pieceDao(),
-                puzzleBitmap = it,
-                rows = rows,
-                columns = columns
-            )
-        }
-
+    val jigsawPuzzleViewModel: JigsawPuzzleViewModel = viewModel(
+        factory = JigsawPuzzleViewModelFactory(
+            pieceDao = AppDatabase.getDatabase(LocalContext.current).pieceDao(),
+            puzzleBitmap = BitmapFactory.decodeResource(LocalContext.current.resources, drawableId),
+            rows = rows,
+            columns = columns
+        )
     )
 
     Column(
@@ -42,7 +39,7 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
     {
         Button(
             onClick = {
-                viewModel.clearGrid()
+                jigsawPuzzleViewModel.clearGrid()
             },
             modifier = Modifier.align(Alignment.End)
         )
@@ -65,19 +62,19 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
                 )
                 {
                     val pieceHeight = maxHeight
-                    val pieceWidth = (pieceHeight * viewModel.pieceBitmapWidth) / viewModel.pieceBitmapHeight
+                    val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
                     Row()
                     {
                         repeat(columns) { columnIndex ->
-                            val gridPiece = viewModel.gridPieces[rowIndex][columnIndex]
+                            val gridPiece = jigsawPuzzleViewModel.gridPieces[rowIndex][columnIndex]
 
                             Piece(
                                 piece = gridPiece.value,
                                 acceptDragEvents = gridPiece.value != null,
                                 acceptDropEvents = gridPiece.value == null,
                                 onDrop = {
-                                    viewModel.dropPieceOnGrid(it, rowIndex, columnIndex)
+                                    jigsawPuzzleViewModel.dropPieceOnGrid(it, rowIndex, columnIndex)
                                 },
                                 modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
                             )
@@ -92,11 +89,13 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
         )
         {
             val pieceHeight = maxHeight
-            val pieceWidth = (pieceHeight * viewModel.pieceBitmapWidth) / viewModel.pieceBitmapHeight
+            val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
-            LazyRow()
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            )
             {
-                items(viewModel.listPieces)
+                items(jigsawPuzzleViewModel.listPieces)
                 {
                     Piece(
                         piece = it,

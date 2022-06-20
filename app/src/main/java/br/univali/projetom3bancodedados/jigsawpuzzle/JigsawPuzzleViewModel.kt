@@ -1,6 +1,7 @@
 package br.univali.projetom3bancodedados.jigsawpuzzle
 
-import android.graphics.Bitmap
+import android.content.res.Resources
+import android.graphics.*
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -11,15 +12,16 @@ import br.univali.projetom3bancodedados.jigsawpuzzle.database.Piece as DatabaseP
 import br.univali.projetom3bancodedados.jigsawpuzzle.database.PieceDao
 import kotlinx.coroutines.launch
 
-class ViewModelFactory(
+class JigsawPuzzleViewModelFactory(
     private val pieceDao: PieceDao,
     private val puzzleBitmap: Bitmap,
     private val rows: Int,
     private val columns: Int
 ) : ViewModelProvider.NewInstanceFactory()
 {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T =
-        ViewModel(
+        JigsawPuzzleViewModel(
             pieceDao = pieceDao,
             puzzleBitmap = puzzleBitmap,
             rows = rows,
@@ -27,7 +29,7 @@ class ViewModelFactory(
         ) as T
 }
 
-class ViewModel(
+class JigsawPuzzleViewModel(
     private val pieceDao: PieceDao,
     puzzleBitmap: Bitmap,
     rows: Int,
@@ -53,22 +55,37 @@ class ViewModel(
                 databasePiecesIterator.next()
             }
 
-            for (row in 0 until rows)
+            val pieceCanvas = Canvas()
+            val pieceBorderPaint = Paint()
+            pieceBorderPaint.color = Color.BLACK
+            pieceBorderPaint.style = Paint.Style.STROKE
+            pieceBorderPaint.strokeWidth = (10 * Resources.getSystem().displayMetrics.density)
+            val pieceBorderPath = Path()
+
+            for (rowIndex in 0 until rows)
             {
-                for (column in 0 until columns)
+                for (columnIndex in 0 until columns)
                 {
                     val pieceBitmap = Bitmap.createBitmap(
                         puzzleBitmap,
-                        (pieceBitmapWidth * column),
-                        (pieceBitmapHeight * row),
+                        (pieceBitmapWidth * columnIndex),
+                        (pieceBitmapHeight * rowIndex),
                         pieceBitmapWidth,
                         pieceBitmapHeight
                     )
 
-                    if (databasePiece?.rowIndex == row && databasePiece.columnIndex == column) {
+                    pieceCanvas.setBitmap(pieceBitmap)
+                    pieceBorderPath.reset()
+                    pieceBorderPath.lineTo(pieceBitmapWidth.toFloat(), 0f)
+                    pieceBorderPath.lineTo(pieceBitmapWidth.toFloat(), pieceBitmapHeight.toFloat())
+                    pieceBorderPath.lineTo(0f, pieceBitmapHeight.toFloat())
+                    pieceBorderPath.lineTo(0f, 0f)
+                    pieceCanvas.drawPath(pieceBorderPath, pieceBorderPaint)
+
+                    if (databasePiece?.rowIndex == rowIndex && databasePiece.columnIndex == columnIndex) {
                         gridPieces[databasePiece.currentRowIndex][databasePiece.currentColumnIndex].value = Piece(
-                            rowIndex = row,
-                            columnIndex = column,
+                            rowIndex = rowIndex,
+                            columnIndex = columnIndex,
                             currentRowIndex = databasePiece.currentRowIndex,
                             currentColumnIndex = databasePiece.currentColumnIndex,
                             bitmap = pieceBitmap
@@ -82,8 +99,8 @@ class ViewModel(
                     else {
                         listPieces.add(
                             Piece(
-                                rowIndex = row,
-                                columnIndex = column,
+                                rowIndex = rowIndex,
+                                columnIndex = columnIndex,
                                 currentRowIndex = null,
                                 currentColumnIndex = null,
                                 bitmap = pieceBitmap
@@ -92,6 +109,7 @@ class ViewModel(
                     }
                 }
             }
+
             listPieces.shuffle()
         }
     }
