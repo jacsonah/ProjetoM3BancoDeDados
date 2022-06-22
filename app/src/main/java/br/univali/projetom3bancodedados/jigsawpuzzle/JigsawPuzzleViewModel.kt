@@ -38,6 +38,7 @@ class JigsawPuzzleViewModel(
 {
     val pieceBitmapWidth = puzzleBitmap.width / columns
     val pieceBitmapHeight = puzzleBitmap.height / rows
+
     val listPieces = mutableStateListOf<Piece>()
     val gridPieces = Array(rows) {
         Array<MutableState<Piece?>>(columns) {
@@ -57,10 +58,11 @@ class JigsawPuzzleViewModel(
 
             val pieceCanvas = Canvas()
             val pieceBorderPaint = Paint()
+            val pieceBorderPath = Path()
+
             pieceBorderPaint.color = Color.BLACK
             pieceBorderPaint.style = Paint.Style.STROKE
             pieceBorderPaint.strokeWidth = (5 * Resources.getSystem().displayMetrics.density)
-            val pieceBorderPath = Path()
 
             for (rowIndex in 0 until rows)
             {
@@ -83,13 +85,14 @@ class JigsawPuzzleViewModel(
                     pieceCanvas.drawPath(pieceBorderPath, pieceBorderPaint)
 
                     if (databasePiece?.rowIndex == rowIndex && databasePiece.columnIndex == columnIndex) {
-                        gridPieces[databasePiece.currentRowIndex][databasePiece.currentColumnIndex].value = Piece(
-                            rowIndex = rowIndex,
-                            columnIndex = columnIndex,
-                            currentRowIndex = databasePiece.currentRowIndex,
-                            currentColumnIndex = databasePiece.currentColumnIndex,
-                            bitmap = pieceBitmap
-                        )
+                        gridPieces[databasePiece.currentRowIndex][databasePiece.currentColumnIndex].value =
+                            Piece(
+                                rowIndex = rowIndex,
+                                columnIndex = columnIndex,
+                                currentRowIndex = databasePiece.currentRowIndex,
+                                currentColumnIndex = databasePiece.currentColumnIndex,
+                                bitmap = pieceBitmap
+                            )
 
                         databasePiece = when (databasePiecesIterator.hasNext()) {
                             true -> databasePiecesIterator.next()
@@ -116,13 +119,16 @@ class JigsawPuzzleViewModel(
 
     fun dropPieceOnGrid(droppedPiece: Piece, dropRowIndex: Int, dropColumnIndex: Int)
     {
-        gridPieces[dropRowIndex][dropColumnIndex].value = Piece(
-            rowIndex = droppedPiece.rowIndex,
-            columnIndex = droppedPiece.columnIndex,
-            currentRowIndex = dropRowIndex,
-            currentColumnIndex = dropColumnIndex,
-            bitmap = droppedPiece.bitmap
-        )
+        if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
+            gridPieces[droppedPiece.currentRowIndex!!][droppedPiece.currentColumnIndex!!].value = null
+        }
+        else {
+            listPieces.remove(droppedPiece)
+        }
+
+        droppedPiece.currentRowIndex = dropRowIndex
+        droppedPiece.currentColumnIndex = dropColumnIndex
+        gridPieces[dropRowIndex][dropColumnIndex].value = droppedPiece
 
         viewModelScope.launch {
             pieceDao.insertPiece(
@@ -135,21 +141,23 @@ class JigsawPuzzleViewModel(
             )
         }
 
-        if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
-            gridPieces[droppedPiece.currentRowIndex!!][droppedPiece.currentColumnIndex!!].value = null
-        }
-        else {
-            listPieces.remove(droppedPiece)
-        }
+
     }
 
-    fun dropPieceOnList(droppedPiece: Piece, dropIndex: Int): Boolean
+    fun dropPieceOnList(droppedPiece: Piece, dropIndex: Int)
     {
-        if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
-            gridPieces[droppedPiece.currentRowIndex!!][droppedPiece.currentColumnIndex!!].value = null
+        val droppedPieceCurrentRowIndex = droppedPiece.currentRowIndex
+        val droppedPieceCurrentColumnIndex = droppedPiece.currentColumnIndex
+
+        if (droppedPieceCurrentRowIndex != null && droppedPieceCurrentColumnIndex != null) {
+            gridPieces[droppedPieceCurrentRowIndex][droppedPieceCurrentColumnIndex].value = null
             droppedPiece.currentRowIndex = null
             droppedPiece.currentColumnIndex = null
             listPieces.add(dropIndex, droppedPiece)
+
+            viewModelScope.launch {
+                pieceDao.deletePiece(droppedPieceCurrentRowIndex, droppedPieceCurrentColumnIndex)
+            }
         }
         else {
             val droppedPieceCurrentIndex = listPieces.indexOf(droppedPiece)
@@ -162,7 +170,6 @@ class JigsawPuzzleViewModel(
                 listPieces.add(dropIndex, droppedPiece)
             }
         }
-        return true
     }
 
     fun clearGrid()

@@ -13,6 +13,9 @@ interface PieceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPiece(piece: Piece)
 
+    @Query("DELETE FROM jigsaw_puzzle_pieces WHERE row_index = :rowIndex AND column_index = :columnIndex")
+    suspend fun deletePiece(rowIndex: Int, columnIndex: Int)
+
     @Query("DELETE FROM jigsaw_puzzle_pieces")
     suspend fun deleteAllPieces()
 }

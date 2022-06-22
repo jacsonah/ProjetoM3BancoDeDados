@@ -26,6 +26,8 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             columns = columns
         )
     )
+    val pieceBitmapWidth = jigsawPuzzleViewModel.pieceBitmapWidth
+    val pieceBitmapHeight = jigsawPuzzleViewModel.pieceBitmapHeight
 
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -55,7 +57,7 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
         )
         {
             val pieceHeight = maxHeight / rows
-            val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
+            val pieceWidth = (pieceHeight * pieceBitmapWidth) / pieceBitmapHeight
 
             Column {
                 repeat(rows) { rowIndex ->
@@ -81,7 +83,7 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             modifier = Modifier.weight(1f)
         )
         {
-            val pieceWidth = (maxHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
+            val pieceWidth = (maxHeight * pieceBitmapWidth) / pieceBitmapHeight
 
             PiecesList(
                 listPieces = jigsawPuzzleViewModel.listPieces,
@@ -89,6 +91,7 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
                 pieceHeight = maxHeight,
                 onDrop = { droppedPiece, dropIndex ->
                     jigsawPuzzleViewModel.dropPieceOnList(droppedPiece, dropIndex)
+                    true
                 },
                 modifier = Modifier.fillMaxWidth()
             )
