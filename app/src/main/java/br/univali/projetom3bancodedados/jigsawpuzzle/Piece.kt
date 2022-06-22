@@ -2,7 +2,6 @@ package br.univali.projetom3bancodedados.jigsawpuzzle
 
 import android.graphics.Bitmap
 import android.os.Build
-import android.view.DragEvent
 import android.view.View
 import android.widget.ImageView
 import androidx.compose.runtime.*
@@ -13,23 +12,30 @@ import androidx.compose.ui.viewinterop.AndroidView
 data class Piece(
     val rowIndex: Int,
     val columnIndex: Int,
-    val currentRowIndex: Int?,
-    val currentColumnIndex: Int?,
+    var currentRowIndex: Int?,
+    var currentColumnIndex: Int?,
     val bitmap: Bitmap
 )
 
-private data class DragLocalState(
-    val dragView: View,
-    val piece: Piece
-)
+private fun startPieceDrag(dragView: View, piece: Piece)
+{
+    val shadowBuilder = View.DragShadowBuilder(dragView)
+    val dragLocalState = DragLocalState(dragView = dragView, piece = piece)
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        @Suppress("DEPRECATION")
+        dragLocalState.dragView.startDrag(null, shadowBuilder, dragLocalState, 0)
+    }
+    else {
+        dragLocalState.dragView.startDragAndDrop(null, shadowBuilder, dragLocalState, View.DRAG_FLAG_OPAQUE)
+    }
+}
 
 @Composable
-fun Piece(
+fun GridPiece(
     piece: Piece?,
     modifier: Modifier = Modifier,
-    acceptDragEvents: Boolean = false,
-    acceptDropEvents: Boolean = false,
-    onDrop: (pieceDropped: Piece) -> Unit = {}
+    onDrop: (pieceDropped: Piece) -> Boolean
 )
 {
     var alpha by remember{ mutableStateOf(1f) }
@@ -41,87 +47,78 @@ fun Piece(
             }
         },
         update = { imageView ->
-            var dragStartedX: Float? = null
-            var dragStartedY: Float? = null
-
             imageView.setImageBitmap(piece?.bitmap)
-
             imageView.setOnLongClickListener {
-                when (acceptDragEvents) {
-                    true -> {
-                        val shadowBuilder = View.DragShadowBuilder(it)
-                        val dragLocalState = piece?.let { piece ->
-                            DragLocalState(
-                                dragView = it,
-                                piece = piece
-                            )
-                        }
-
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                            @Suppress("deprecation")
-                            it.startDrag(null, shadowBuilder, dragLocalState, 0)
-                        }
-                        else {
-                            it.startDragAndDrop(null, shadowBuilder, dragLocalState, View.DRAG_FLAG_OPAQUE)
-                        }
-                        true
-                    }
-                    false -> false
+                if (piece != null) {
+                    startPieceDrag(dragView = it, piece = piece)
+                    true
+                }
+                else {
+                    false
                 }
             }
-
-            imageView.setOnDragListener { dropView, dragEvent ->
-                when (dragEvent.action) {
-                    DragEvent.ACTION_DRAG_STARTED -> {
-                        val dragLocalState = dragEvent.localState
-
-                        if (dragLocalState is DragLocalState && dragLocalState.dragView == dropView) {
-                            dragStartedX = dragEvent.x
-                            dragStartedY = dragEvent.y
-                            true
-                        }
-                        else {
-                            acceptDropEvents
-                        }
-                    }
-                    DragEvent.ACTION_DRAG_ENTERED -> true
-                    DragEvent.ACTION_DRAG_LOCATION -> {
-                        if (alpha != 0f) {
-                            val dragLocalState = dragEvent.localState
-
-                            if ((dragLocalState is DragLocalState) &&
-                                (dragLocalState.dragView == dropView) &&
-                                (dragStartedX != dragEvent.x || dragStartedY != dragEvent.y)) {
-                                alpha = 0f
-                            }
-                        }
-                        true
-                    }
-                    DragEvent.ACTION_DRAG_EXITED -> true
-                    DragEvent.ACTION_DROP -> {
-                        val dragLocalState = dragEvent.localState
-
-                        if (dragLocalState is DragLocalState) {
-                            if (dragLocalState.dragView == dropView) {
-                                false
-                            }
-                            else {
-                                onDrop(dragLocalState.piece)
-                                true
-                            }
+            imageView.setOnDragListener(
+                PieceOnDragListener(
+                    onPieceDragged = {
+                        alpha = 0f
+                    },
+                    onDrop = { _, _, dragLocalState ->
+                        if (piece == null) {
+                            onDrop(dragLocalState.piece)
                         }
                         else {
                             false
                         }
+                    },
+                    onDragEnded = {
+                        alpha = 1f
                     }
-                    DragEvent.ACTION_DRAG_ENDED -> {
-                        if (alpha != 1f) {
+                )
+            )
+        },
+        modifier = modifier.alpha(alpha)
+    )
+}
+
+@Composable
+fun ListPiece(
+    piece: Piece,
+    modifier: Modifier = Modifier,
+    onLeftSideDrop: (pieceDropped: Piece) -> Boolean,
+    onRightSideDrop: (pieceDropped: Piece) -> Boolean
+)
+{
+    var alpha by remember{ mutableStateOf(1f) }
+
+    AndroidView(
+        factory = { context ->
+            ImageView(context).apply {
+                scaleType = ImageView.ScaleType.FIT_XY
+                setOnDragListener(
+                    PieceOnDragListener(
+                        onPieceDragged = {
+                            alpha = 0f
+                        },
+                        onDrop = { dropView, dragEvent, dragLocalState ->
+                            if (dragEvent.x < dropView.width / 2) {
+                                onLeftSideDrop(dragLocalState.piece)
+                            }
+                            else {
+                                onRightSideDrop(dragLocalState.piece)
+                            }
+                        },
+                        onDragEnded = {
                             alpha = 1f
                         }
-                        true
-                    }
-                    else -> false
-                }
+                    )
+                )
+            }
+        },
+        update = { imageView ->
+            imageView.setImageBitmap(piece.bitmap)
+            imageView.setOnLongClickListener {
+                startPieceDrag(dragView = it, piece = piece)
+                true
             }
         },
         modifier = modifier.alpha(alpha)

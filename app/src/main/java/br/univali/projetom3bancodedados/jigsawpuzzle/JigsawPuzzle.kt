@@ -3,8 +3,6 @@ package br.univali.projetom3bancodedados.jigsawpuzzle
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,20 +57,17 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             val pieceHeight = maxHeight / rows
             val pieceWidth = (pieceHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
-            Column()
-            {
+            Column {
                 repeat(rows) { rowIndex ->
-                    Row()
-                    {
+                    Row {
                         repeat(columns) { columnIndex ->
                             val gridPiece = jigsawPuzzleViewModel.gridPieces[rowIndex][columnIndex]
 
-                            Piece(
+                            GridPiece(
                                 piece = gridPiece.value,
-                                acceptDragEvents = gridPiece.value != null,
-                                acceptDropEvents = gridPiece.value == null,
                                 onDrop = {
                                     jigsawPuzzleViewModel.dropPieceOnGrid(it, rowIndex, columnIndex)
+                                    true
                                 },
                                 modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
                             )
@@ -88,21 +83,15 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
         {
             val pieceWidth = (maxHeight * jigsawPuzzleViewModel.pieceBitmapWidth) / jigsawPuzzleViewModel.pieceBitmapHeight
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            PiecesList(
+                listPieces = jigsawPuzzleViewModel.listPieces,
+                pieceWidth = pieceWidth,
+                pieceHeight = maxHeight,
+                onDrop = { droppedPiece, dropIndex ->
+                    jigsawPuzzleViewModel.dropPieceOnList(droppedPiece, dropIndex)
+                },
+                modifier = Modifier.fillMaxWidth()
             )
-            {
-                items(jigsawPuzzleViewModel.listPieces)
-                {
-                    Piece(
-                        piece = it,
-                        acceptDragEvents = true,
-                        modifier = Modifier
-                            .width(pieceWidth)
-                            .fillMaxHeight()
-                    )
-                }
-            }
         }
     }
 }

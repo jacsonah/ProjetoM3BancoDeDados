@@ -136,11 +136,33 @@ class JigsawPuzzleViewModel(
         }
 
         if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
-            gridPieces[droppedPiece.currentRowIndex][droppedPiece.currentColumnIndex].value = null
+            gridPieces[droppedPiece.currentRowIndex!!][droppedPiece.currentColumnIndex!!].value = null
         }
         else {
             listPieces.remove(droppedPiece)
         }
+    }
+
+    fun dropPieceOnList(droppedPiece: Piece, dropIndex: Int): Boolean
+    {
+        if (droppedPiece.currentRowIndex != null && droppedPiece.currentColumnIndex != null) {
+            gridPieces[droppedPiece.currentRowIndex!!][droppedPiece.currentColumnIndex!!].value = null
+            droppedPiece.currentRowIndex = null
+            droppedPiece.currentColumnIndex = null
+            listPieces.add(dropIndex, droppedPiece)
+        }
+        else {
+            val droppedPieceCurrentIndex = listPieces.indexOf(droppedPiece)
+            listPieces.remove(droppedPiece)
+
+            if (droppedPieceCurrentIndex < dropIndex) {
+                listPieces.add(dropIndex - 1, droppedPiece)
+            }
+            else {
+                listPieces.add(dropIndex, droppedPiece)
+            }
+        }
+        return true
     }
 
     fun clearGrid()
