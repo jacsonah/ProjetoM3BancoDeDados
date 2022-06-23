@@ -8,15 +8,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun PiecesList(
-    listPieces: SnapshotStateList<Piece>,
-    pieceWidth: Dp,
-    pieceHeight: Dp,
+    pieces: SnapshotStateList<Piece>,
     modifier: Modifier = Modifier,
     onDrop: (droppedPiece: Piece, dropIndex: Int) -> Boolean
 )
@@ -33,30 +30,38 @@ fun PiecesList(
                 onDrop = {
                     onDrop(it, 0)
                 },
-                modifier = Modifier.width(maxWidth).fillMaxHeight()
+                modifier = Modifier
+                    .width(maxWidth)
+                    .fillMaxHeight()
             )
         }
 
         LazyRow {
-            itemsIndexed(listPieces) { index, piece ->
+            itemsIndexed(pieces) { index, piece ->
                 Row {
-                    ListPiece(
-                        piece = piece,
-                        onLeftSideDrop = {
-                            onDrop(it, index)
-                        },
-                        onRightSideDrop = {
-                            onDrop(it, index + 1)
-                        },
-                        modifier = Modifier.size(width = pieceWidth, height = pieceHeight)
-                    )
+                    BoxWithConstraints {
+                        val pieceWidth = (maxHeight * piece.bitmap.width) / piece.bitmap.height
 
-                    if (index < (listPieces.size - 1)) {
+                        ListPiece(
+                            piece = piece,
+                            onLeftSideDrop = {
+                                onDrop(it, index)
+                            },
+                            onRightSideDrop = {
+                                onDrop(it, index + 1)
+                            },
+                            modifier = Modifier.size(width = pieceWidth, height = maxHeight)
+                        )
+                    }
+
+                    if (index < (pieces.size - 1)) {
                         PiecesListPlaceholder(
                             onDrop = {
                                 onDrop(it, index + 1)
                             },
-                            modifier = Modifier.width(10.dp).fillMaxHeight()
+                            modifier = Modifier
+                                .width(10.dp)
+                                .fillMaxHeight()
                         )
                     }
                 }
@@ -69,9 +74,11 @@ fun PiecesList(
         {
             PiecesListPlaceholder(
                 onDrop = {
-                    onDrop(it, listPieces.size)
+                    onDrop(it, pieces.size)
                 },
-                modifier = Modifier.width(maxWidth).fillMaxHeight()
+                modifier = Modifier
+                    .width(maxWidth)
+                    .fillMaxHeight()
             )
         }
     }

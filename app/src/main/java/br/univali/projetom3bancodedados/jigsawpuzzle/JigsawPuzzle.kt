@@ -79,22 +79,13 @@ fun JigsawPuzzle(drawableId: Int, rows: Int, columns: Int)
             }
         }
 
-        BoxWithConstraints(
+        PiecesList(
+            pieces = jigsawPuzzleViewModel.listPieces,
+            onDrop = { droppedPiece, dropIndex ->
+                jigsawPuzzleViewModel.dropPieceOnList(droppedPiece, dropIndex)
+                true
+            },
             modifier = Modifier.weight(1f)
         )
-        {
-            val pieceWidth = (maxHeight * pieceBitmapWidth) / pieceBitmapHeight
-
-            PiecesList(
-                listPieces = jigsawPuzzleViewModel.listPieces,
-                pieceWidth = pieceWidth,
-                pieceHeight = maxHeight,
-                onDrop = { droppedPiece, dropIndex ->
-                    jigsawPuzzleViewModel.dropPieceOnList(droppedPiece, dropIndex)
-                    true
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
     }
 }
