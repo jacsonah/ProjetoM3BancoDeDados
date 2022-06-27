@@ -13,8 +13,9 @@ interface PieceDao {
     /**  INSERT INTO jigsaw_puzzle_pieces (row_index, column_index, current_row_index, current_column_index)
      *   VALUES (piece.rowIndex, piece.columnIndex, piece.currentRowIndex, piece.currentColumnIndex)
      *
-     *   UPDATE jigsaw_puzzle_pieces SET row_index = piece.rowIndex, column_index = piece.columnIndex
-     *   current_row_index = piece.currentRowIndex, current_column_index = piece.currentColumnIndex
+     *   UPDATE jigsaw_puzzle_pieces
+     *   SET current_row_index = piece.currentRowIndex, current_column_index = piece.currentColumnIndex
+     *   WHERE row_index = piece.rowIndex AND column_index = piece.columnIndex
      **/
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPiece(piece: Piece)

@@ -13,7 +13,8 @@ interface DrawPathDao {
     /**  INSERT INTO draw_path (path_name, argb_color, draw_name)
      *   VALUES (path.pathName, path.argbColor, path.drawName)
      *
-     *   UPDATE draw_path SET path_name = path.pathName, argb_color = path.argbColor, draw_name = path.drawName
+     *   UPDATE draw_path SET argb_color = path.argbColor, draw_name = path.drawName
+     *   WHERE path_name = path.pathName
      **/
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPath(path: DrawPath)
