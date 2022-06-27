@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import br.univali.projetom3bancodedados.database.AppDatabase
-import br.univali.projetom3bancodedados.database.DrawPath
+import br.univali.projetom3bancodedados.paint.database.DrawPath
 import com.richpath.RichPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

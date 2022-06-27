@@ -13,8 +13,8 @@ import com.google.accompanist.pager.HorizontalPager
 fun Screen()
 {
     val pages = listOf(
-        Pages.JigsawPuzzle,
-        Pages.BelgiumPaint
+        Pages.BelgiumPaint,
+        Pages.JigsawPuzzle
     )
 
     HorizontalPager(

@@ -1,4 +1,4 @@
-package br.univali.projetom3bancodedados.database
+package br.univali.projetom3bancodedados.paint.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import br.univali.projetom3bancodedados.jigsawpuzzle.database.Piece
 import br.univali.projetom3bancodedados.jigsawpuzzle.database.PieceDao
+import br.univali.projetom3bancodedados.paint.database.DrawPath
+import br.univali.projetom3bancodedados.paint.database.DrawPathDao
 
 @Database(entities = [DrawPath::class, Piece::class], version = 1, exportSchema = false)
 abstract class AppDatabase: RoomDatabase()
